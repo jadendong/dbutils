@@ -11,6 +11,8 @@ public class TestInsert {
         QueryRunnerCRUD qrc=new QueryRunnerCRUD();
 //        qrc.add();
         // 是否返回主键值
-        qrc.add2();
+//        qrc.fixAdd2();
+//        System.out.println(qrc.fixAdd2());
+          qrc.fix2Add2();
     }
 }

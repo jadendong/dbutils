@@ -1,5 +1,7 @@
 package top.getcode.dbutils.DBUtils;
 
+import oracle.jdbc.OraclePreparedStatement;
+import oracle.jdbc.OracleTypes;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
@@ -7,9 +9,8 @@ import org.apache.commons.dbutils.handlers.ScalarHandler;
 import top.getcode.dbutils.entity.Account;
 import top.getcode.dbutils.util.JDBCUtils;
 
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.SQLException;
+import java.math.BigDecimal;
+import java.sql.*;
 import java.util.List;
 
 /**
@@ -82,23 +83,65 @@ public class QueryRunnerCRUD {
 
 	/**
 	 * 或得返回的主键值
+	 * 出BUG咯===
 	 * @throws SQLException
 	 */
 	public void add2() throws SQLException {
 		QueryRunner qr=new QueryRunner(JDBCUtils.getDataSource());
-		String sql="INSERT INTO ACCOUNT VALUES(ACCOUNT_SEQ.NEXTVAL,?,?,SYSDATE)";
+//		String sql="INSERT INTO ACCOUNT VALUES(ACCOUNT_SEQ.NEXTVAL,?,?,SYSDATE)";
+		String sql2="INSERT INTO TEST VALUES(6,'小黑',sysdate)";
 
-		Object o=qr.insert(sql,new ScalarHandler(),"小黑",52.65);
+		BigDecimal o= (BigDecimal) qr.insert(sql2,new ScalarHandler());
 		System.out.println(o);
 	}
 
 	/**
-	 * 上面的那个出BUG了,让我来用原生JDBC试一下
+	 * 上面的那个出BUG了,让我换个法子
+	 * !!!!!还是不行
+	 * cannot be cast to oracle.jdbc.OraclePreparedStatement
 	 */
-	public void add3() throws SQLException {
+	public int fixAdd2() throws SQLException {
 		Connection conn=JDBCUtils.getConnection();
-		String sql="INSERT INTO ACCOUNT VALUES(ACCOUNT_SEQ.NEXTVAL,?,?,SYSDATE)";
+		String sql="BEGIN INSERT INTO ACCOUNT VALUES(ACCOUNT_SEQ.NEXTVAL,?,?,SYSDATE) RETRUNING id into ?;END ;";
+		OraclePreparedStatement pstt= (OraclePreparedStatement) conn.prepareStatement(sql);
+		pstt.setString(1,"呵呵姐");
+		pstt.setDouble(2,52.33);
 
+		pstt.registerReturnParameter(3, OracleTypes.INTEGER);
+
+		pstt.executeUpdate();
+
+		ResultSet rs=pstt.getReturnResultSet();
+		int id=-1;
+		if (rs.next()){
+			id=rs.getInt(1);
+		}
+		return id;
+	}
+
+	/**
+	 * 搞不出来就不睡觉~~~~
+	 * 好吧,这样成功了,但是为什么第一个方法失败了.......
+	 */
+	public void fix2Add2() throws SQLException {
+		String sql="INSERT INTO ACCOUNT VALUES(ACCOUNT_SEQ.NEXTVAL,?,?,SYSDATE)";
+		Connection conn=JDBCUtils.getConnection();
+//		PreparedStatement ps=conn.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
+		// 获取指定ID
+		String generatedColumns[] = { "ID" };
+		PreparedStatement ps=conn.prepareStatement(sql,generatedColumns);
+
+		ps.setString(1,"大哥的女人");
+		ps.setDouble(2,233.666);
+
+		int i=ps.executeUpdate();
+
+		// 检索对象生产的键
+		ResultSet rs=ps.getGeneratedKeys();
+		if (rs.next()){
+			System.out.println("主键是: "+rs.getObject(1));
+		}
+		JDBCUtils.close();
 	}
 	/**
 	 * 删除
