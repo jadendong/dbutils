@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<c3p0-config>
+	<default-config>
+		<property name="jdbcUrl">jdbc:oracle:thin:@localhost:1521:xe</property>
+		<property name="driverClass">oracle.jdbc.driver.OracleDriver</property>
+		<property name="user">bbs</property>
+		<property name="password">bbs</property>
+		<property name="initialPoolSize">20</property>
+		<property name="maxPoolSize">30</property>
+		<property name="minPoolSize">10</property>
+		<property name="maxIdleTime">30</property>
+	</default-config>
+	
+</c3p0-config>
